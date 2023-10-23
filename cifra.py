@@ -21,17 +21,25 @@ class Cifra:
                 # separa as palavras e espaços de cada linha
                 str_patternPalavras = r'(\s+|\S+)'
                 list_palavras = re.findall(str_patternPalavras, str_linha)
-                list_elementos = []
+                list_elementosMix = [] # lista a ser adicionada com palavras e acordes
+                list_elementoPalavrasApenas = [] # lista apenas com palavras
 
                 # verifica se as palavras são palavras ou acordes
                 for str_palavra in list_palavras:
                     acorde_palavra = Acorde(str_palavra)
+                    list_elementoPalavrasApenas.append(str_palavra)
                     if acorde_palavra.is_acorde():
-                        list_elementos.append(acorde_palavra)
+                        list_elementosMix.append(acorde_palavra)
                     else:
-                        list_elementos.append(str_palavra)
+                        list_elementosMix.append(str_palavra)
                 
-                self.list_linhas.append(list_elementos) # adiciona a lista de elementos na lista de linhas
+                #verifica se maior parte da linha é palavra ou acorde
+                list_acordesApenas = [elemento for elemento in list_elementosMix if type(elemento) == Acorde ]
+                if len(list_elementoPalavrasApenas)> 0 and len(list_acordesApenas)/len(list_elementoPalavrasApenas) <= 1/4: # poucos acordes por linha
+                    self.list_linhas.append(list_elementoPalavrasApenas) # adiciona a lista de apenas palavras na lista de linhas
+                else:
+                    self.list_linhas.append(list_elementosMix) # adiciona a lista de palavras e acordes na lista de linhas
+
         elif type(cifra_linhas) == list:
             self.str_nomeMusica = nome_musica
             self.list_linhas = cifra_linhas
