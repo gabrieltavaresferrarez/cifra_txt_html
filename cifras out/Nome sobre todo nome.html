@@ -5,10 +5,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="estilo.css">
-    <title>Nome sobre todo nome</title>
+    <title>A alegria  esta no coracao medley solta o cabo da nao medley porque ele vive</title>
     <style>
         .cifra{
-            font-family: monospace;;
+            font-family: monospace;
+            font-size: 15px;
         }
         
         div.cifra{
@@ -24,7 +25,28 @@
         }
     </style>
 </head>
-<body><div class="cifra">
+<body>
+    <button onclick="mudaFonte(+1)">+ A</button>
+    <button onclick="mudaFonte(-1)">- A</button>
+    <script>
+function mudaFonte(valor){
+    // Seleciona todos os elementos com a classe "minhaClasse"
+    var elementos = document.querySelectorAll('.cifra');
+
+    // Itera sobre todos os elementos e modifica o estilo da fonte
+    elementos.forEach(function(elemento) {
+        // Obtém o tamanho atual da fonte
+        var tamanhoFonteAtual = window.getComputedStyle(elemento, null).getPropertyValue('font-size');
+        var tamanhoFonteNumerico = parseFloat(tamanhoFonteAtual);
+        var novoTamanhoFonte = tamanhoFonteNumerico + valor;
+        elemento.style.fontSize = novoTamanhoFonte + 'px';
+        console.log("old size", tamanhoFonteAtual)
+        console.log("new size", novoTamanhoFonte)
+    });
+}
+    </script>
+
+<div class="cifra">
 	<pre class="cifra">
 <strong class="title">Nome sobre todo nome</strong>
 
