@@ -3,3 +3,5 @@ __pycache__/
 
 cifras in/*
 cifras out/*
+
+*/.DS_Store
