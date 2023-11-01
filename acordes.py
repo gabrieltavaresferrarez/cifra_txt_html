@@ -136,7 +136,7 @@ class Acorde:
         # daqui pra baixo, a primeira letra é uma nota
         if len(self.list_elementos) == 1 : # acorde só com uma letra ex D, C, F
             return True
-        if has_symbol(['#', '/', '+'], self.list_elementos) or has_number(self.list_elementos): #verifica se tem sustenido ou numero na lista de elementos
+        if has_symbol(['#', '/', '+', '°'], self.list_elementos) or has_number(self.list_elementos): #verifica se tem sustenido ou numero na lista de elementos
             return True
         if len(self.list_elementos) == 2 and  'm' in self.list_elementos: # acordes com 2 letras ex. Em, Dm Bb
             return True
