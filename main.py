@@ -40,7 +40,7 @@ for filename in os.listdir('cifras in'):
          cifra = Cifra(cifra_linhas, nome_musica)
          
 
-   cifra_out_filename = 'cifras out/' + filename.replace('.txt', '.html')
+   cifra_out_filename = 'cifras out/' + filename.replace('.txt', '.html').replace(' ', '_')
    with codecs.open(unidecode(cifra_out_filename), 'w', 'utf-8') as file:
       file.write(header_html)
       file.write(cifra.export_html())
