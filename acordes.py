@@ -94,9 +94,10 @@ class Acorde:
                         i+=1
                     comp = str_textoOriginal[ini_comp:i]
                     self.list_elementos.append(comp)
-        if type(input) == list: # está recebendo uma lista de elementos já certa
+        elif type(input) == list: # está recebendo uma lista de elementos já certa
             self.list_elementos = input
-        
+        else:
+            raise ValueError(f'Acorde input mus be str ou list only, but received {type(input)}')
         
     
     def __str__(self):
