@@ -42,6 +42,7 @@ for filename in os.listdir('cifras in'):
 
    cifra_out_filename = 'cifras out/' + filename.replace('.txt', '.html').replace(' ', '_')
    with codecs.open(unidecode(cifra_out_filename), 'w', 'utf-8') as file:
+      header_html = header_html.replace('MUDAR_TITULO', nome_musica)
       file.write(header_html)
       file.write(cifra.export_html())
       file.write(botton_html)
