@@ -1,0 +1,8 @@
+* Alterar TOM por um botão
+  - Talvez mudar par aum link único e vários objetos JSON que são usados de parâmetro no URL e acessa a cifra 
+  - Algo como "ieqplanalto.com?cifra=foi_de_graca&&tom=0"
+
+* Mudar o tamanho do título conforme a largura da cifra
+* Conseguir uma quebra inteligente de linha para não estourar na tela do celular
+* Adicionar uma HomePage que poderá selecionar uma cifra do banco de dados
+* Talvez um banco de dados com as cifras existentes
