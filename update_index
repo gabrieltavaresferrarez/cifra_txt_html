@@ -1,0 +1,3 @@
+#!/bin/zsh
+
+python index/make_index.py

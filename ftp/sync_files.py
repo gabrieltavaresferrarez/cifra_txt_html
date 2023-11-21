@@ -32,8 +32,17 @@ with FTP(str_host) as ftp:
 
   print('{} files to upload : \n{}'.format(len(list_filesUpload), "\n".join(list_filesUpload)))
 
-  for str_file in list_filesUpload:
+  for str_file in list_localFiles:
     print('Uploading ' + str_file)
     with open('cifras out/' + str_file, 'rb') as file:
       ftp.storbinary('STOR ' + 'htdocs/cifras/' + str_file, file)
   print('\nSUCCESS : All files Uploaded\n')
+  
+
+  str_index = 'index.html'
+  print('Uploading '+ str_index)
+  with open('index/' + str_index, 'rb') as file:
+    ftp.storbinary('STOR ' + 'htdocs/' + str_index, file)
+  print('\nSUCCESS : Index updatedn')
+
+

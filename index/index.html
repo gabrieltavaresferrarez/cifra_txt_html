@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minhas Cifras</title>
+</head>
+<body>
+    <h1>Selecione uma cifra:</h1>
+    <select id="cifraSelector">
+
+<option value="cifras/Bate_o_sino.html">Bate o sino</option>
+<option value="cifras/Deus_emanuel_f4ces.html">Deus emanuel f4ces</option>
+<option value="cifras/Nome_sobre_todo_nome.html">Nome sobre todo nome</option>
+<option value="cifras/Cancao_ao_cordeiro.html">Cancao ao cordeiro</option>
+<option value="cifras/nova_cifra.html">nova cifra</option>
+<option value="cifras/yeshua_medley.html">yeshua medley</option>
+<option value="cifras/foi_de_graca.html">foi de graca</option>
+<option value="cifras/Deus_Emanuel.html">Deus Emanuel</option>
+<option value="cifras/O_espirito_de_Deus_esta_aqui_medley_ouve_o_deus.html">O espirito de Deus esta aqui medley ouve o deus</option>
+<option value="cifras/Sublime_graca.html">Sublime graca</option>
+<option value="cifras/A_alegria_esta_no_coracao_medley_solta_o_cabo_da_nao_medley_porque_ele_vive.html">A alegria esta no coracao medley solta o cabo da nao medley porque ele vive</option>
+<option value="cifras/Vem_com_Josue.html">Vem com Josue</option>
+<option value="cifras/Jingle_Bell_Rocks.html">Jingle Bell Rocks</option>
+    
+    </select>
+
+    <script>
+        const cifraSelector = document.getElementById("cifraSelector");
+
+        cifraSelector.addEventListener("change", function () {
+            const selectedCifra = cifraSelector.value;
+            window.location.href = selectedCifra;
+        });
+    </script>
+</body>
+</html>
