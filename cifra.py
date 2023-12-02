@@ -244,7 +244,7 @@ class Cifra:
                 
                 # linha maior que MAX
                 else:
-                    while True:
+                    while len(list_linhasCifra[int_linhaAcordeIndex]) > 0:
                         if size_linha(list_novaLinhaAcorde) + len(str(list_linhasCifra[int_linhaAcordeIndex][0])) < int_maxLinha: # verifica se adicionar o proximo elemento inteiro esoura linha
                             # se não estoura, adiciona na lista nova e atualiza a lista original de acordes
                             list_novaLinhaAcorde.append(list_linhasCifra[int_linhaAcordeIndex][0])
@@ -254,12 +254,18 @@ class Cifra:
                             if type(list_linhasCifra[int_linhaAcordeIndex][0]) == Acorde: # se for acorde, adiciona o acorde todo
                                 list_novaLinhaAcorde.append(list_linhasCifra[int_linhaAcordeIndex][0]) # adiciona o elemento na linha
                                 list_linhasCifra[int_linhaAcordeIndex] = list_linhasCifra[int_linhaAcordeIndex][1:] # remove o primeiro elemento da lista 1 por 1
-                                break
-                            else: # se for texto, corta o texto no meio
+                            elif is_spaces(list_linhasCifra[int_linhaAcordeIndex][0]): # se for texto, corta o texto no meio
                                 int_numeroCaracteresAdicionar = int_maxLinha - size_linha(list_novaLinhaAcorde)
                                 list_novaLinhaAcorde.append(list_linhasCifra[int_linhaAcordeIndex][0][:int_numeroCaracteresAdicionar])
                                 list_linhasCifra[int_linhaAcordeIndex][0] = list_linhasCifra[int_linhaAcordeIndex][0][int_numeroCaracteresAdicionar:] # remove os caracteres que foram adicionados na linha nova da linha original
-                                break
+                            
+                            # adiciona linha de acorde
+                            # se len(linha acorde)>0 adiciona
+                            if len(list_novaLinhaAcorde) > 0: # não acabou os acordes
+                                list_novaCifra.append(list_novaLinhaAcorde)
+
+                            list_novaLinhaAcorde=[] # zera nova linha para adicionar mais elementos
+                
                 # adiciona linha de acorde
                 # se len(linha acorde)>0 adiciona
                 if len(list_novaLinhaAcorde) > 0: # não acabou os acordes
@@ -277,15 +283,19 @@ class Cifra:
                     list_novaLinhaTexto = list_linhasCifra[int_linhaTextoIndex] # agora toda linha de acorde é usada (não é maior que MAX)
                     list_linhasCifra[int_linhaTextoIndex] = [] #esvazia linha original
                 else:
-                    while size_linha(list_novaLinhaTexto) + len(list_linhasCifra[int_linhaTextoIndex][0]) < int_maxLinha: # verifica se adicionar mais um elemento estoura o tamanho
-                        list_novaLinhaTexto.append(list_linhasCifra[int_linhaTextoIndex][0])
-                        list_linhasCifra[int_linhaTextoIndex] = list_linhasCifra[int_linhaTextoIndex][1:] # remove o primeiro elemento da lista 1 por 1
-                        if len(list_linhasCifra) == 0:
-                            break
-                    
-                    if len(list_novaLinhaTexto) > 0 :
-                        list_novaCifra.append(list_novaLinhaTexto)
-                    int_linhaIndex += 1
+                    while len(list_linhasCifra[int_linhaTextoIndex]) > 0:
+                        if size_linha(list_novaLinhaTexto) + len(list_linhasCifra[int_linhaTextoIndex][0]) < int_maxLinha: # verifica se adicionar mais um elemento estoura o tamanho
+                            list_novaLinhaTexto.append(list_linhasCifra[int_linhaTextoIndex][0])
+                            list_linhasCifra[int_linhaTextoIndex] = list_linhasCifra[int_linhaTextoIndex][1:] # remove o primeiro elemento da lista 1 por 1
+                        else:
+                            # adiciona linha nova na cifra
+                            if len(list_novaLinhaTexto) > 0 :
+                                list_novaCifra.append(list_novaLinhaTexto)
+                            list_novaLinhaTexto = [] # zera linha para adicionar resto do texto
+
+                if len(list_novaLinhaTexto) > 0 :
+                    list_novaCifra.append(list_novaLinhaTexto)
+                int_linhaIndex += 1
             else: # provavelmente linha vazia
                 list_novaCifra.append(list_linhasCifra[int_linhaIndex])
                 int_linhaIndex += 1
