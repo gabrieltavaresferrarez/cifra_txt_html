@@ -21,3 +21,7 @@ def is_linha_texto(list_linha:list):
     if type(element) != str:
       return False
   return True
+
+#retorna True se o tetxo for inteiro de espaços
+def is_spaces(texto:str):
+  return texto.replace(' ', '') == ''

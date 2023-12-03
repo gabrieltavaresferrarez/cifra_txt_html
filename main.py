@@ -16,11 +16,6 @@ botton_filename = './text_sources/botton.html'
 for filename in os.listdir('cifras in'):
    nome_musica = filename.replace('.txt', '')
 
-   with codecs.open(header_filename, 'r', 'utf-8') as file:
-      header_html = file.read().replace('[MUDAR TITULO]', nome_musica)
-   with codecs.open(botton_filename, 'r', 'utf-8') as file:
-      botton_html = file.read()
-
    string_fileName = r'cifras in/'+ str(filename)
    with codecs.open(string_fileName, 'r', 'utf-8') as file:
       cifra_linhas = file.read()
@@ -39,10 +34,13 @@ for filename in os.listdir('cifras in'):
       else:
          cifra = Cifra(cifra_linhas, nome_musica)
          
+   with codecs.open(header_filename, 'r', 'utf-8') as file:
+      header_html = file.read().replace('[MUDAR_TITULO]', nome_musica)
+   with codecs.open(botton_filename, 'r', 'utf-8') as file:
+      botton_html = file.read()
 
    cifra_out_filename = 'cifras out/' + filename.replace('.txt', '.html').replace(' ', '_')
    with codecs.open(unidecode(cifra_out_filename), 'w', 'utf-8') as file:
-      header_html = header_html.replace('MUDAR_TITULO', nome_musica)
       file.write(header_html)
       file.write(cifra.export_html())
       file.write(botton_html)

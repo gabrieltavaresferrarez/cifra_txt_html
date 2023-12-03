@@ -97,13 +97,35 @@ class Cifra:
         else:
             raise ValueError(f'Subtração apenas com inteiros e não {type(value)}')
 
+    
+    
+    def get_title(self, int_maxSize = 15):
+        str_title = ''
+        list_nomeMusica = self.str_nomeMusica.split(' ')
+
+        str_line = ''
+        while len(list_nomeMusica) > 0:
+            if len(str_line) + len(list_nomeMusica[0]) < int_maxSize:
+                str_line += list_nomeMusica.pop(0) + ' '
+            elif len(list_nomeMusica[0]) > int_maxSize: # palavra muito grande no titulo
+                if len(str_line) == 0:
+                    str_title = list_nomeMusica.pop(0) + '\n' # adiciona a palavra grande quando a linha estiver vazia
+            else:
+                str_title = str_title + str_line[:-1] + '\n'
+                str_line = ''
+        
+        str_title = str_title + str_line[:-1]
+        return str_title
+    
+
+
     '''
     returns a string of the html file conatining the cifra
     '''
     def export_html(self):
         html = '<div class="cifra">\n'
         html += '\t<pre class="cifra">\n'
-        html += '<strong class="title">' + self.str_nomeMusica + '</strong>\n\n'
+        html += '<strong class="title">' + self.get_title() + '</strong>\n\n'
         for linha in self.list_linhas:
             for elemento in linha:
                 if type(elemento) == Acorde:
