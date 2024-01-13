@@ -1,6 +1,6 @@
-from acordes import Acorde
+from .acordes import Acorde
 import re
-from utils import *
+from .utils import *
 
 # Uma cifra é composta por uma lista de linhas
 #     Cada linha é uma lista de Elementos
