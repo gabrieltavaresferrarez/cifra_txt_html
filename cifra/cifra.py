@@ -3,6 +3,8 @@ import re
 from .utils import *
 import codecs
 from .errors import ConstructorError
+import xml.etree.ElementTree as ET
+from xml.dom import minidom
 
 # Uma cifra é composta por uma lista de linhas
 #     Cada linha é uma lista de Elementos
@@ -31,6 +33,7 @@ class Cifra:
         self.__list_linhas = [] # privata attribute
         self.__int_maxSizeLinha = maxSizeLinha
         
+        
         # verifica qual é o construtor da cifra -------------------
         bool_text_constructor = len(text)>0
         bool_text_file_constructor = len(text_file)>0
@@ -47,15 +50,15 @@ class Cifra:
 
         # Chama o construtor da cifras
         if bool_text_constructor: # constrói cifra a aprtir de um texto
-            self.__text_constructor(text)
+            self.__constructor_text(text)
         elif bool_text_file_constructor: # constrói cifra a partir de um arquivo de texto
-            self.__text_file_constructor(text_file)
+            self.__constructor_text_file(text_file)
         elif bool_xml_file_constructor: # constrói cifra a partir de um arquivo xml
-            self.__xml_file_constructor(xml_file)
+            self.__constructor_xml_file(xml_file)
         elif bool_xml_content_constructor: # constrói cifra a partir de um texto xml
-            self.__xml_content_constructor(xml_content)
+            self.__constructor_xml_content(xml_content)
         elif bool_list_lines_constructor: # constrói cifra a partir de um objeto de linhas de python -> usado para criar cifras a partir de outra
-            self.__list_lines_constructor(list_lines)
+            self.__constructor_list_lines(list_lines)
 
         # após gerar uma cifra, reordena as linhas para terem um limite de caracteres por linha
         if reshape:
@@ -65,7 +68,7 @@ class Cifra:
     # ---------------------------------------------- METODOS DE CONSTRUCAO ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------------------------------
     
-    def __text_constructor(self, str_text):
+    def __constructor_text(self, str_text):
         listStr_linhasCifra = str_text.split('\n')
         modulacao = self.__get_modulation(listStr_linhasCifra[0]) # verifica se há modulação no texto
         if modulacao != 0:
@@ -103,7 +106,7 @@ class Cifra:
 
     '''Constroi a cifra a partir de um arquivo de texto
     '''
-    def __text_file_constructor(self, str_textFileName):
+    def __constructor_text_file(self, str_textFileName):
         with codecs.open(str_textFileName, 'r', 'utf-8') as file:
             str_cifraLinhas = file.read()
             if len(str_cifraLinhas) == 0:
@@ -112,17 +115,49 @@ class Cifra:
             modulacao = self.__get_modulation(primeira_linha)
 
             str_cifraLinhas = str_cifraLinhas.replace(primeira_linha+'\n', '') #remove a primeira linha da modulação
-            self.__text_constructor(str_cifraLinhas) # constroi o list_linhas
+            self.__constructor_text(str_cifraLinhas) # constroi o list_linhas
             if modulacao != 0:
                 self += modulacao
 
-    def __xml_file_constructor(self, str_text):
-        pass # 
+    def __constructor_xml_file(self, str_textFileName):
+        with codecs.open(str_textFileName, 'r', 'utf-8') as file:
+            str_cifraLinhas = file.read()
+            if len(str_cifraLinhas) == 0:
+                raise ConstructorError(f'Arquivo {str_textFileName} está vazio')
 
-    def __xml_content_constructor(self, str_text):
-        pass # 
+            self.__constructor_xml_content(str_cifraLinhas) # constroi o list_linhas
 
-    def __list_lines_constructor(self, list_lines):
+    def __constructor_xml_content(self, str_text):
+        xmlElement_cifra = ET.fromstring(str_text)
+        list_elementosValidos = {'cifra', 'linha', 'acorde', 'texto'}
+        # valida se xml está na estrutura correta ======
+        for xmlElement in xmlElement_cifra.iter():
+            if xmlElement.tag not in list_elementosValidos:
+                raise ConstructorError(f'Erro na leitura do XML da cifra. Apenas as tags {list_elementosValidos} são válidas, mas foi encontrada a tag {xmlElement.tag}')
+
+        # constrói lista a partir de xml
+        modulacao = 0
+        for atributo, valor in xmlElement_cifra.attrib.items():
+            if atributo == 'modulacao' and valor.isnumeric:
+                modulacao = int(valor)
+
+        for xmlElement_linha in xmlElement_cifra:
+            list_newLine = []
+            for xmlElement_elemento in xmlElement_linha:
+                if xmlElement_elemento.tag == 'acorde':
+                    elemento = Acorde(xmlElement_elemento.text)
+                elif xmlElement_elemento.tag == 'texto':
+                    elemento = xmlElement_elemento.text
+                list_newLine.append(elemento)
+            self.__list_linhas.append(list_newLine)
+        
+        if modulacao != 0:
+            self += modulacao
+
+
+
+
+    def __constructor_list_lines(self, list_lines):
         # verifica se a lista tem apenas Acordes e textos
         for i, list_linha in enumerate(list_lines):
             if type(list_linha) != list :
@@ -186,6 +221,7 @@ class Cifra:
             return self + (-value)
         else:
             raise ValueError(f'Subtração apenas com inteiros e não {type(value)}')
+    
 
     
     # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -228,6 +264,33 @@ class Cifra:
         html += '</div>\n'
         
         return html
+    
+    def export_xml(self, str_pathOut:str = 'cifra.xml', formatted:bool = True, exportFile:bool = True, filename:str = 'cifra.xml'):
+        xmlElement_cifra = ET.Element("cifra")
+        xmlElement_cifra.attrib['nome'] = self.__str_nome
+        for list_linha in self.__list_linhas:
+            xmlElement_linha = ET.SubElement(xmlElement_cifra, "linha")
+            for elemento in list_linha:
+                if type(elemento) == Acorde:
+                    xmlElement_acorde = ET.SubElement(xmlElement_linha, "acorde")
+                    xmlElement_acorde.text = str(elemento)
+                if type(elemento) == str:
+                    xmlElement_texto = ET.SubElement(xmlElement_linha, "texto")
+                    xmlElement_texto.text = str(elemento)
+
+        xmlTree_cifra = ET.ElementTree(xmlElement_cifra)
+        strXml_cifra = ET.tostring(xmlElement_cifra, encoding='utf-8', method='xml')
+        if formatted:
+            strXml_cifraFormatted = minidom.parseString(strXml_cifra).toprettyxml(indent="  ")
+        else:
+            strXml_cifraFormatted = strXml_cifra
+
+        if exportFile:
+            with open(filename, 'w', encoding='utf-8') as file:
+                file.write(strXml_cifraFormatted)
+
+        return strXml_cifraFormatted
+        
     
     # ------------------------------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- METODOS DE TRANSFORMAÇAO ----------------------------------------------
