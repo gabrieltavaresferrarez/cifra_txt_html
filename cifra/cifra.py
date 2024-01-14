@@ -202,26 +202,37 @@ class Cifra:
     # ---------------------------------------------- METODOS DE MODULAÇAO ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------------------------------
     def __add__(self, value):
-        list_linhasNew = []
         if type(value) == int:
-            for linha in self.__list_linhas:
-                linha_new = []
-                for element in linha:
-                    if type(element) == Acorde:
-                        linha_new.append(element + value)
-                    else:
-                        linha_new.append(element)
-                list_linhasNew.append(linha_new)
-            return Cifra(self.__str_nome, list_lines=list_linhasNew)
+            return self.modulate(value, itSelf=False)
         else:
             raise ValueError(f'Soma apenas com inteiros e não {type(value)}')
         
     def __sub__(self, value):
         if type(value) ==  int:
-            return self + (-value)
+            return self.modulate(-value, itSelf=False)
         else:
             raise ValueError(f'Subtração apenas com inteiros e não {type(value)}')
     
+    '''Modula a cifra para alterar o tom dela
+
+    * Argumento opcional
+        - itSelf (bool)[default=True] : Altera o valor da própria cifra. Se for False, retorna um novo objeto cifra alterado
+    '''
+    def modulate(self, int_modulacao:int, itSelf:bool = True):
+        list_linhasNew = []
+        for linha in self.__list_linhas:
+            linha_new = []
+            for element in linha:
+                if type(element) == Acorde:
+                    linha_new.append(element + int_modulacao)
+                else:
+                    linha_new.append(element)
+            list_linhasNew.append(linha_new)
+        if itSelf:
+            self.__list_linhas = list_linhasNew
+            return None
+        else:
+            return Cifra(self.__str_nome, list_lines=list_linhasNew)
 
     
     # ------------------------------------------------------------------------------------------------------------------------------------------
