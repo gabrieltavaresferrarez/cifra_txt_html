@@ -102,7 +102,7 @@ class Cifra:
                 self.__list_linhas.append(list_elementosMix) # adiciona a lista de palavras e acordes na lista de linhas
 
         if modulacao != 0:
-            self += modulacao
+            self.modulate(modulacao)
 
     '''Constroi a cifra a partir de um arquivo de texto
     '''
@@ -117,7 +117,7 @@ class Cifra:
             str_cifraLinhas = str_cifraLinhas.replace(primeira_linha+'\n', '') #remove a primeira linha da modulação
             self.__constructor_text(str_cifraLinhas) # constroi o list_linhas
             if modulacao != 0:
-                self += modulacao
+                self.modulate(modulacao)
 
     def __constructor_xml_file(self, str_textFileName):
         with codecs.open(str_textFileName, 'r', 'utf-8') as file:
@@ -152,7 +152,7 @@ class Cifra:
             self.__list_linhas.append(list_newLine)
         
         if modulacao != 0:
-            self += modulacao
+            self.modulate(modulacao)
 
 
 
@@ -276,7 +276,7 @@ class Cifra:
         
         return html
     
-    def export_xml(self, str_pathOut:str = 'cifra.xml', formatted:bool = True, exportFile:bool = True, filename:str = 'cifra.xml'):
+    def export_xml(self, str_pathOut:str = 'cifra.xml', formatted:bool = True, exportFile:bool = False, filename:str = 'cifra.xml'):
         xmlElement_cifra = ET.Element("cifra")
         xmlElement_cifra.attrib['nome'] = self.__str_nome
         for list_linha in self.__list_linhas:
