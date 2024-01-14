@@ -1,73 +1,157 @@
 from .acordes import Acorde
 import re
 from .utils import *
+import codecs
+from .errors import ConstructorError
 
 # Uma cifra é composta por uma lista de linhas
 #     Cada linha é uma lista de Elementos
 #         Esses Elementos podem String ou Acorde
 
 # ex.  A   B   2x -> [Acorde<A>, '   ', Acorde<B>, '   ', '2x']
+#   Ele vive -> ['Ele', ' ', 'vive',]
 class Cifra:
-    int_maxSizeLinha:int = 30
+    '''Objeto Cifra guarda uma cifra em formato de lista
 
-    def __init__(self, cifra_linhas, nome_musica:str):
-        if type(cifra_linhas) == str:
-            self.list_linhas = []
-            self.str_nomeMusica = nome_musica
-            listStr_linhasCifra = cifra_linhas.split('\n')
+    * Argumentos:
+        - nome_musica (str) : é o nome da música
+        - text (str) : é um contrutor no formato de texto que não pode estar vazio
+        - text_file (str) : é um construtor que indica o caminho de um arquivo de texto da cifra
+        - xml_file (str) : é um construtor que indica o caminho de um arquivo xml da cifra
+        - xml_content (str) : é um contrutor no formato de texto que não pode estar vazio
+        - list_lines (list) : é um construtor que já passa uma lista de elementos de texto e Acorde. (é usado quando vamos criar uma cifra a partir de outra)
 
-            # passa por cada linha
-            for str_linha in listStr_linhasCifra:
-                str_linha = str_linha.replace('\r\n', '').replace('\n', '') # da uma limpada nas linhas pros diferentes editores de texto
-
-                # separa as palavras e espaços de cada linha
-                str_patternPalavras = r'(\s+|\S+)'
-                list_palavras = re.findall(str_patternPalavras, str_linha)
-                list_elementosMix = [] # lista a ser adicionada com palavras e acordes
-                list_elementoPalavrasApenas = [] # lista apenas com palavras
-
-                # verifica se as palavras são palavras ou acordes
-                for str_palavra in list_palavras:
-                    acorde_palavra = Acorde(str_palavra)
-                    list_elementoPalavrasApenas.append(str_palavra)
-                    if acorde_palavra.is_acorde():
-                        list_elementosMix.append(acorde_palavra)
-                    else:
-                        list_elementosMix.append(str_palavra)
-                
-                #verifica se maior parte da linha é palavra ou acorde
-                list_acordesApenas = [elemento for elemento in list_elementosMix if type(elemento) == Acorde ]
-                if len(list_elementoPalavrasApenas)> 0 and len(list_acordesApenas)/len(list_elementoPalavrasApenas) <= 1/4: # poucos acordes por linha
-                    self.list_linhas.append(list_elementoPalavrasApenas) # adiciona a lista de apenas palavras na lista de linhas
-                else:
-                    self.list_linhas.append(list_elementosMix) # adiciona a lista de palavras e acordes na lista de linhas
-
-        elif type(cifra_linhas) == list:
-            self.str_nomeMusica = nome_musica
-            self.list_linhas = cifra_linhas
-        else:
-            raise ValueError(f'cifra_linhas deve ser uma cifra em string ou uma lista de elementos de cifra')
+    * Argumentos opcionais: 
+        - reshape (bool)[default=True] : Indica se a cifra deve passar por um reshape no tamanho das linhas ou não
+        - maxSizeLinha (int)[default=30] : É o número máximo de caracteres que uma linha pode ter antes de ser cortada
+    '''
+    def __init__(self, nome_musica:str, text:str='', text_file:str='', xml_file:str= '', xml_content:str='', list_lines=[], maxSizeLinha:int = 30, reshape=True):
+        # inicializa atributos da cifra -------------------
+        self.__str_nome = nome_musica # private attribute
+        self.__list_linhas = [] # privata attribute
+        self.__int_maxSizeLinha = maxSizeLinha
         
+        # verifica qual é o construtor da cifra -------------------
+        bool_text_constructor = len(text)>0
+        bool_text_file_constructor = len(text_file)>0
+        bool_xml_file_constructor = len(xml_file)>0
+        bool_xml_content_constructor = len(xml_content)>0
+        bool_list_lines_constructor = len(list_lines)>0
+        int_numConstrutores = int(bool_text_file_constructor) + bool(bool_text_constructor) + int(bool_xml_file_constructor) + int(bool_xml_content_constructor) + int(bool_list_lines_constructor)
+        
+        str_listConstructors = 'text, text_file, xml_file, xml_content, list_lines'
+        if int_numConstrutores == 0:
+            raise ConstructorError(f'É necessário usar um construtor válido entre {str_listConstructors}')
+        if int_numConstrutores > 1:
+            raise ConstructorError(f'É necessário usar apenas 1 construtor válido entre {str_listConstructors}')
+
+        # Chama o construtor da cifras
+        if bool_text_constructor: # constrói cifra a aprtir de um texto
+            self.__text_constructor(text)
+        elif bool_text_file_constructor: # constrói cifra a partir de um arquivo de texto
+            self.__text_file_constructor(text_file)
+        elif bool_xml_file_constructor: # constrói cifra a partir de um arquivo xml
+            self.__xml_file_constructor(xml_file)
+        elif bool_xml_content_constructor: # constrói cifra a partir de um texto xml
+            self.__xml_content_constructor(xml_content)
+        elif bool_list_lines_constructor: # constrói cifra a partir de um objeto de linhas de python -> usado para criar cifras a partir de outra
+            self.__list_lines_constructor(list_lines)
 
         # após gerar uma cifra, reordena as linhas para terem um limite de caracteres por linha
-        self.reshape_lines(self.int_maxSizeLinha)
+        if reshape:
+            self.reshape_lines(self.__int_maxSizeLinha)
+    
+    # ------------------------------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------- METODOS DE CONSTRUCAO ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------------------------------
+    
+    def __text_constructor(self, str_text):
+        listStr_linhasCifra = str_text.split('\n')
+        modulacao = self.__get_modulation(listStr_linhasCifra[0]) # verifica se há modulação no texto
+        if modulacao != 0:
+            listStr_linhasCifra = listStr_linhasCifra[1:] # se tiver modulacao, remove a primeira linha do texto
+        
 
-        # Essa parte é um alerta de atenção para verificar se as músicas tem acordes de alerta que podem ser que não sem acordes
-        #   e. Em -> pode ser acorde ou palavra
-        list_acordesAtencao = [Acorde('Em'), Acorde('E')]
-        list_acordesAlertaExistente = []
-        for linha in self.list_linhas:
-            for acorde in list_acordesAtencao:
-                if acorde in linha:
-                    if not(acorde in list_acordesAlertaExistente):
-                        list_acordesAlertaExistente.append(acorde)
-        if len(list_acordesAlertaExistente):
-            print(f'[ATENÇÃO: a musica <{self.str_nomeMusica}> contem acorde {list_acordesAlertaExistente}]. Verifique se está certo todas as vezes')
+        # passa por cada linha
+        for str_linha in listStr_linhasCifra:
+            str_linha = str_linha.replace('\r\n', '').replace('\n', '') # da uma limpada nas linhas pros diferentes editores de texto
+            # separa as palavras e espaços de cada linha
+            str_patternEspacos = r'(\s+|\S+)'
+            list_palavras = re.findall(str_patternEspacos, str_linha)
+            list_elementosMix = [] # lista a ser adicionada com palavras e acordes
+            list_elementoPalavrasApenas = [] # lista apenas com palavras
+
+            # verifica se as palavras são palavras ou acordes
+            for str_palavra in list_palavras:
+                acorde_palavra = Acorde(str_palavra)
+                list_elementoPalavrasApenas.append(str_palavra)
+                if acorde_palavra.is_acorde():
+                    list_elementosMix.append(acorde_palavra)
+                else:
+                    list_elementosMix.append(str_palavra)
             
+            #verifica se maior parte da linha é palavra ou acorde
+            razao_acorde_palavras = 1/4
+            list_acordesApenas = [elemento for elemento in list_elementosMix if type(elemento) == Acorde]
+            if len(list_elementoPalavrasApenas)> 0 and len(list_acordesApenas)/len(list_elementoPalavrasApenas) <= razao_acorde_palavras: # poucos acordes por linha
+                self.__list_linhas.append(list_elementoPalavrasApenas) # adiciona a lista de apenas palavras na lista de linhas
+            else:
+                self.__list_linhas.append(list_elementosMix) # adiciona a lista de palavras e acordes na lista de linhas
+
+        if modulacao != 0:
+            self += modulacao
+
+    '''Constroi a cifra a partir de um arquivo de texto
+    '''
+    def __text_file_constructor(self, str_textFileName):
+        with codecs.open(str_textFileName, 'r', 'utf-8') as file:
+            str_cifraLinhas = file.read()
+            if len(str_cifraLinhas) == 0:
+                raise ConstructorError(f'Arquivo {str_textFileName} está vazio')
+            primeira_linha = str_cifraLinhas.split('\n')[0]
+            modulacao = self.__get_modulation(primeira_linha)
+
+            str_cifraLinhas = str_cifraLinhas.replace(primeira_linha+'\n', '') #remove a primeira linha da modulação
+            self.__text_constructor(str_cifraLinhas) # constroi o list_linhas
+            if modulacao != 0:
+                self += modulacao
+
+    def __xml_file_constructor(self, str_text):
+        pass # 
+
+    def __xml_content_constructor(self, str_text):
+        pass # 
+
+    def __list_lines_constructor(self, list_lines):
+        # verifica se a lista tem apenas Acordes e textos
+        for i, list_linha in enumerate(list_lines):
+            if type(list_linha) != list :
+                raise ConstructorError(f'Linha {i} da lista não é um objeto de lista.')
+            for j, elemento in enumerate(list_linha):
+                if type(elemento) not in [Acorde, str]:
+                    raise ConstructorError(f'Linha {i} - palavra {j} da lista não é um objeto de str ou Acorde.')
+        self.__list_linhas = list_lines
+    
+
+    @staticmethod
+    def __get_modulation(str_text):
+        # identifica @ TOM + 1 na linha
+        modulacao = 0
+        if len(str_text) > 0 and str_text[0] == '@' and 'TOM' in str_text: #primeira linha tem modulação de tom
+            if '+' in str_text:
+                modulacao = + int(re.findall(r'\d+', str_text)[0])
+            elif '-' in str_text:
+                modulacao = - int(re.findall(r'\d+', str_text)[0])
+        return modulacao
+
+    
+    # ------------------------------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------- METODOS DE REPRESENTAÇAO ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------------------------------
     
     def __str__(self):
-        str_text = '[' + self.str_nomeMusica+']\n\n'
-        for linha in self.list_linhas:
+        str_text = '[' + self.__str_nome+']\n\n'
+        for linha in self.__list_linhas:
             for elemento in linha:
                 str_text += str(elemento)
             str_text += '\n'
@@ -75,11 +159,17 @@ class Cifra:
 
     def __repr__(self):
         return self.__str__()
+    
+    def get_list(self):
+        return self.__list_linhas
         
+    # ------------------------------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------- METODOS DE MODULAÇAO ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------------------------------
     def __add__(self, value):
         list_linhasNew = []
         if type(value) == int:
-            for linha in self.list_linhas:
+            for linha in self.__list_linhas:
                 linha_new = []
                 for element in linha:
                     if type(element) == Acorde:
@@ -87,7 +177,7 @@ class Cifra:
                     else:
                         linha_new.append(element)
                 list_linhasNew.append(linha_new)
-            return Cifra(list_linhasNew, self.str_nomeMusica)
+            return Cifra(self.__str_nome, list_lines=list_linhasNew)
         else:
             raise ValueError(f'Soma apenas com inteiros e não {type(value)}')
         
@@ -98,10 +188,12 @@ class Cifra:
             raise ValueError(f'Subtração apenas com inteiros e não {type(value)}')
 
     
-    
+    # ------------------------------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------- METODOS DE EXPORTAÇAO ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------------------------------
     def get_title(self, int_maxSize = 15):
         str_title = ''
-        list_nomeMusica = self.str_nomeMusica.split(' ')
+        list_nomeMusica = self.__str_nome.split(' ')
 
         str_line = ''
         while len(list_nomeMusica) > 0:
@@ -117,7 +209,6 @@ class Cifra:
         str_title = str_title + str_line[:-1]
         return str_title
     
-
 
     '''
     returns a string of the html file conatining the cifra
@@ -138,8 +229,12 @@ class Cifra:
         
         return html
     
+    # ------------------------------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------- METODOS DE TRANSFORMAÇAO ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------------------------------
+
     def reshape_lines(self, max_letters):
-        list_linhasCifra = self.list_linhas
+        list_linhasCifra = self.__list_linhas
         int_maxLinha = max_letters
         list_novaCifra = []
 
@@ -322,4 +417,4 @@ class Cifra:
                 list_novaCifra.append(list_linhasCifra[int_linhaIndex])
                 int_linhaIndex += 1
         
-        self.list_linhas = list_novaCifra
+        self.__list_linhas = list_novaCifra
