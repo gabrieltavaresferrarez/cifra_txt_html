@@ -121,11 +121,10 @@ class Cifra:
 
     def __constructor_xml_file(self, str_textFileName):
         with codecs.open(str_textFileName, 'r', 'utf-8') as file:
-            str_cifraLinhas = file.read()
-            if len(str_cifraLinhas) == 0:
+            str_cifraXML = file.read()
+            if len(str_cifraXML) == 0:
                 raise ConstructorError(f'Arquivo {str_textFileName} está vazio')
-
-            self.__constructor_xml_content(str_cifraLinhas) # constroi o list_linhas
+            self.__constructor_xml_content(str_cifraXML) # constroi o list_linhas
 
     def __constructor_xml_content(self, str_text):
         xmlElement_cifra = ET.fromstring(str_text)
@@ -196,7 +195,7 @@ class Cifra:
         return self.__str__()
     
     def get_list(self):
-        return self.__list_linhas
+        return self.__list_linhas.copy()
         
     # ------------------------------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- METODOS DE MODULAÇAO ----------------------------------------------
